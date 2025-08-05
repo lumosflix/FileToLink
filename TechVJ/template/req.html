@@ -1,44 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Video Player</title>
-  <!-- Plyr.io CSS -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Red Neon HLS Player</title>
+
+  <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />
+
+  <!-- Custom Style -->
   <style>
-    body { margin: 0; display: flex; height: 100vh; align-items: center; justify-content: center; background: #000; }
-    #player { width: 100%; max-width: 800px; }
+    :root {
+      --plyr-color-main: #ff3c3c;
+    }
+
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .video-wrapper {
+      width: 90%;
+      max-width: 900px;
+      border-radius: 0;
+      overflow: hidden;
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #000;
+    }
+
+    .plyr__controls {
+      background: transparent !important;
+      backdrop-filter: none !important;
+      box-shadow: none !important;
+    }
+
+    .plyr__control {
+      border-radius: 50% !important;
+      transition: all 0.2s ease-in-out;
+      background-color: rgba(255, 60, 60, 0.1) !important;
+    }
+
+    .plyr__control:hover {
+      box-shadow: none !important;
+      background-color: rgba(255, 60, 60, 0.3) !important;
+    }
+
+    @media (max-width: 600px) {
+      .video-wrapper {
+        border-radius: 0;
+      }
+    }
   </style>
 </head>
 <body>
-  <video id="player" playsinline controls></video>
 
-  <!-- Plyr.io JS -->
-  <script src="https://cdn.plyr.io/3.6.9/plyr.js"></script>
+  <div class="video-wrapper">
+    <video id="player" controls playsinline></video>
+  </div>
+
+  <!-- HLS.js -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <!-- Plyr JS -->
+  <script src="https://cdn.plyr.io/3.6.9/plyr.polyfilled.js"></script>
+
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      const url = "{{file_url}}";
-      const videoEl = document.getElementById('player');
-      const src = document.createElement('source');
-      src.src = url;
-      // set MIME based on extension
-      if (url.toLowerCase().endsWith('.mkv')) {
-        src.type = 'video/x-matroska';
-      } else {
-        src.type = 'video/mp4';
-      }
-      videoEl.appendChild(src);
+      const video = document.getElementById('player');
+      const url = "{{file_url}}"; // Replace with your .m3u8 URL
 
-      // initialize Plyr
-      Plyr.setup(videoEl, {
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play();
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.addEventListener('loadedmetadata', () => video.play());
+      }
+
+      const player = new Plyr(video, {
         controls: [
-          'play-large', 'rewind', 'play', 'fast-forward', 'progress',
-          'current-time', 'duration', 'mute', 'volume', 'captions',
-          'settings', 'download', 'fullscreen'
-        ]
+          'play-large', 'play', 'progress', 'current-time',
+          'mute', 'volume', 'fullscreen'
+        ],
+        seekTime: 10,
+        hideControls: false,
       });
     });
   </script>
+
 </body>
 </html>
