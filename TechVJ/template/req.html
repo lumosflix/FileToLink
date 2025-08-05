@@ -2,17 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Red Neon HLS Player</title>
-
-  <!-- Plyr CSS -->
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple HLS Player</title>
   <style>
-    :root {
-      --plyr-color-main: #ff3c3c;
-    }
-
     body {
       margin: 0;
       background: #000;
@@ -20,68 +12,21 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
-    .video-wrapper {
-      width: 90%;
-      max-width: 900px;
-      overflow: hidden;
     }
 
     video {
       width: 100%;
-      height: auto;
-      display: block;
+      max-width: 800px;
       background: #000;
-    }
-
-    .plyr__controls {
-      background: transparent !important;
-      backdrop-filter: none !important;
-      box-shadow: none !important;
-    }
-
-    .plyr__control {
-      border-radius: 50% !important;
-      transition: all 0.2s ease-in-out;
-      background-color: rgba(255, 60, 60, 0.1) !important;
-    }
-
-    .plyr__control:hover {
-      background-color: rgba(255, 60, 60, 0.3) !important;
-    }
-
-    @media (max-width: 600px) {
-      .video-wrapper {
-        border-radius: 0;
-      }
     }
   </style>
 </head>
 <body>
 
-  <div class="video-wrapper">
-    <video id="player" controls playsinline>
-      <source src="{{file_url}}" type="application/vnd.apple.mpegurl">
-      Your browser does not support HLS playback.
-    </video>
-  </div>
-
-  <!-- Plyr JS -->
-  <script src="https://cdn.plyr.io/3.6.9/plyr.polyfilled.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      new Plyr('#player', {
-        controls: [
-          'play-large', 'play', 'progress', 'current-time',
-          'mute', 'volume', 'fullscreen'
-        ],
-        seekTime: 10,
-        hideControls: false,
-      });
-    });
-  </script>
+  <video id="player" controls playsinline>
+    <source src="{{file_url}}" type="application/vnd.apple.mpegurl">
+    Your browser does not support HLS playback.
+  </video>
 
 </body>
 </html>
