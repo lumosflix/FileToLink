@@ -8,7 +8,6 @@
   <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />
 
-  <!-- Custom Style -->
   <style>
     :root {
       --plyr-color-main: #ff3c3c;
@@ -27,7 +26,6 @@
     .video-wrapper {
       width: 90%;
       max-width: 900px;
-      border-radius: 0;
       overflow: hidden;
     }
 
@@ -51,7 +49,6 @@
     }
 
     .plyr__control:hover {
-      box-shadow: none !important;
       background-color: rgba(255, 60, 60, 0.3) !important;
     }
 
@@ -77,7 +74,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const video = document.getElementById('player');
-      const url = "{{file_url}}"; // Replace with your .m3u8 URL
+      const url = "{{file_url}}"; // Replace this dynamically or manually
 
       if (Hls.isSupported()) {
         const hls = new Hls();
@@ -91,7 +88,7 @@
         video.addEventListener('loadedmetadata', () => video.play());
       }
 
-      const player = new Plyr(video, {
+      new Plyr(video, {
         controls: [
           'play-large', 'play', 'progress', 'current-time',
           'mute', 'volume', 'fullscreen'
