@@ -1,57 +1,32 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-  <meta charset="UTF-8">  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-  <title>HLS Video Player</title>  
-  <!-- Plyr CSS -->  
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />  
-  <style>  
-    body {  
-      margin: 0;  
-      display: flex;  
-      height: 100vh;  
-      align-items: center;  
-      justify-content: center;  
-      background: #000;  
-    }  
-    #player {  
-      width: 100%;  
-      max-width: 800px;  
-    }  
-  </style>  
-</head>  
-<body>  
-  <video id="player" playsinline controls></video>    <!-- HLS.js -->    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>    <!-- Plyr JS -->    <script src="https://cdn.plyr.io/3.6.9/plyr.js"></script>    <script>  
-    document.addEventListener('DOMContentLoaded', () => {  
-      const video = document.getElementById('player');  
-      const url   = "{{file_url}}";  // should point to your .m3u8 playlist  
-  
-      // Load HLS if needed  
-      if (Hls.isSupported()) {  
-        const hls = new Hls();  
-        hls.loadSource(url);  
-        hls.attachMedia(video);  
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());  
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {  
-        // Native HLS support (Safari, iOS)  
-        video.src = url;  
-        video.addEventListener('loadedmetadata', () => video.play());  
-      } else {  
-        // Fallback: set as normal source  
-        const src = document.createElement('source');  
-        src.src = url;  
-        src.type = 'application/vnd.apple.mpegurl';  
-        video.appendChild(src);  
-      }  
-  
-      // Initialize Plyr  
-      Plyr.setup(video, {  
-        controls: [  
-          'play-large', 'rewind', 'play', 'fast-forward', 'progress',  
-          'current-time', 'duration', 'mute', 'volume', 'captions',  
-          'settings', 'download', 'fullscreen'  
-        ]  
-      });  
-    });  
-  </script>  </body>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    video {
+      width: 100%;
+      max-width: 800px;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <video id="player" controls playsinline>
+    <source src="{{file_url}}" type="application/vnd.apple.mpegurl">
+    Your browser does not support HLS playback.
+  </video>
+
+</body>
 </html>
