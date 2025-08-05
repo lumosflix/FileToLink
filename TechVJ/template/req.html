@@ -8,6 +8,7 @@
   <!-- Plyr CSS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />
 
+  <!-- Custom Style -->
   <style>
     :root {
       --plyr-color-main: #ff3c3c;
@@ -15,7 +16,7 @@
 
     body {
       margin: 0;
-      background: #000;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -26,35 +27,38 @@
     .video-wrapper {
       width: 90%;
       max-width: 900px;
+      border-radius: 20px;
       overflow: hidden;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 0 25px rgba(255, 0, 0, 0.3);
+      border: 1px solid rgba(255, 60, 60, 0.2);
+      transition: all 0.3s ease;
     }
 
     video {
       width: 100%;
       height: auto;
       display: block;
-      background: #000;
     }
 
     .plyr__controls {
-      background: transparent !important;
-      backdrop-filter: none !important;
-      box-shadow: none !important;
+      background: rgba(0, 0, 0, 0.5) !important;
+      backdrop-filter: blur(8px);
     }
 
     .plyr__control {
-      border-radius: 50% !important;
+      border-radius: 12px !important;
       transition: all 0.2s ease-in-out;
-      background-color: rgba(255, 60, 60, 0.1) !important;
     }
 
     .plyr__control:hover {
-      background-color: rgba(255, 60, 60, 0.3) !important;
+      box-shadow: 0 0 8px rgba(255, 60, 60, 0.6);
     }
 
     @media (max-width: 600px) {
       .video-wrapper {
-        border-radius: 0;
+        border-radius: 12px;
       }
     }
   </style>
@@ -74,7 +78,7 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const video = document.getElementById('player');
-      const url = "{{file_url}}"; // Replace this dynamically or manually
+      const url = "{{file_url}}"; // Replace this with your .m3u8 URL
 
       if (Hls.isSupported()) {
         const hls = new Hls();
@@ -88,7 +92,7 @@
         video.addEventListener('loadedmetadata', () => video.play());
       }
 
-      new Plyr(video, {
+      const player = new Plyr(video, {
         controls: [
           'play-large', 'play', 'progress', 'current-time',
           'mute', 'volume', 'fullscreen'
