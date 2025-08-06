@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple HLS Player</title>
+  <title>Universal Video Player (HLS & MKV)</title>
+  <!-- Video.js core CSS -->
+  <link href="https://vjs.zencdn.net/7.21.0/video-js.css" rel="stylesheet" />
   <style>
     body {
       margin: 0;
@@ -13,20 +15,62 @@
       justify-content: center;
       height: 100vh;
     }
-
-    video {
+    .video-js, video {
       width: 100%;
       max-width: 800px;
+      aspect-ratio: 16/9;
       background: #000;
     }
   </style>
 </head>
 <body>
+  <!-- Unified player element -->
+  <video id="player" class="video-js vjs-default-skin" controls playsinline></video>
 
-  <video id="player" controls playsinline>
-    <source src="{{file_url}}" type="application/vnd.apple.mpegurl">
-    Your browser does not support HLS playback.
-  </video>
+  <!-- Video.js core library -->
+  <script src="https://vjs.zencdn.net/7.21.0/video.min.js"></script>
+  <!-- video.js Matroska plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
+  <!-- hls.js for HLS playback on non-Safari browsers -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
+  <script>
+    // Template-injected URL
+    const fileUrl = '{{file_url}}';
+
+    // Determine MIME type by extension
+    const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
+    const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
+
+    // Grab the video element
+    const videoEl = document.getElementById('player');
+
+    // Initialize video.js player
+    const player = videojs(videoEl);
+
+    if (isMkv) {
+      // MKV via video.js + Matroska plugin
+      player.ready(() => {
+        player.src({ src: fileUrl, type: 'video/x-matroska' });
+        player.play().catch(err => console.warn('Play prevented:', err));
+      });
+    } else if (isHls) {
+      // HLS stream
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(fileUrl);
+        hls.attachMedia(videoEl);
+      } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+        videoEl.src = fileUrl;
+      } else {
+        console.error('HLS not supported in this browser');
+      }
+    } else {
+      // Fallback for other types (e.g., MP4)
+      player.ready(() => {
+        player.src({ src: fileUrl, type: 'video/mp4' });
+      });
+    }
+  </script>
 </body>
 </html>
