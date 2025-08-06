@@ -27,35 +27,31 @@
   <!-- Unified player element -->
   <video id="player" class="video-js vjs-default-skin" controls playsinline></video>
 
-  <!-- Video.js core library -->
+  <!-- Libraries -->
   <script src="https://vjs.zencdn.net/7.21.0/video.min.js"></script>
-  <!-- video.js Matroska plugin -->
   <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
-  <!-- hls.js for HLS playback on non-Safari browsers -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
   <script>
     // Template-injected URL
     const fileUrl = '{{file_url}}';
 
-    // Determine MIME type by extension
+    // Helpers
     const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
     const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
-
-    // Grab the video element
     const videoEl = document.getElementById('player');
-
-    // Initialize video.js player
     const player = videojs(videoEl);
 
     if (isMkv) {
-      // MKV via video.js + Matroska plugin
+      // MKV via video.js + Matroska plugin with larger chunkSize
       player.ready(() => {
+        player.tech().options_ = player.tech().options_ || {};
+        player.tech().options_.matroska = { chunkSize: 256 * 1024 }; // 256KB per request
         player.src({ src: fileUrl, type: 'video/x-matroska' });
         player.play().catch(err => console.warn('Play prevented:', err));
       });
     } else if (isHls) {
-      // HLS stream
+      // HLS playback
       if (Hls.isSupported()) {
         const hls = new Hls();
         hls.loadSource(fileUrl);
@@ -63,12 +59,13 @@
       } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
         videoEl.src = fileUrl;
       } else {
-        console.error('HLS not supported in this browser');
+        console.error('HLS not supported');
       }
     } else {
-      // Fallback for other types (e.g., MP4)
+      // Fallback (e.g. MP4)
       player.ready(() => {
         player.src({ src: fileUrl, type: 'video/mp4' });
+        player.play().catch(() => {});
       });
     }
   </script>
