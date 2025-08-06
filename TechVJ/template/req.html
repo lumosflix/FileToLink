@@ -16,7 +16,7 @@
 
     header {
       background: linear-gradient(135deg,#000 0%,#2d0a0a 100%);
-      padding:1rem; text-align:center; position:sticky; top:0; z-index:100;
+      padding:1rem; text-align:center; position:fixed; top:0; left:0; right:0; z-index:10000;
       box-shadow:0 4px 15px rgba(229,9,20,0.1);
     }
     .logo { font-size:1.75rem; font-weight:700; background:linear-gradient(45deg,#e50914,#ff6b6b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
@@ -33,9 +33,105 @@
     }
     #loading {
       position:fixed; top:100px; left:0; right:0; bottom:60px; background:rgba(0,0,0,0.8); z-index:9999;
-      display:none; align-items:center; justify-content:center; font-size:1.5rem; color:#fff;
+      display:none; align-items:center; justify-content:center; flex-direction: column;
     }
     .video-js { width:100%; height:100%; }
+    
+    /* Modern Loading Animation */
+    .spinner {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+    
+    .spinner-inner {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 4px solid transparent;
+      border-top: 4px solid #e50914;
+      animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+    }
+    
+    .spinner-inner:nth-child(2) {
+      border: 4px solid transparent;
+      border-top: 4px solid #ff6b6b;
+      animation: spin-reverse 1.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+      width: 85%;
+      height: 85%;
+      top: 7.5%;
+      left: 7.5%;
+    }
+    
+    .spinner-inner:nth-child(3) {
+      border: 4px solid transparent;
+      border-top: 4px solid #b20710;
+      animation: spin 2.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+      width: 70%;
+      height: 70%;
+      top: 15%;
+      left: 15%;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes spin-reverse {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(-360deg); }
+    }
+    
+    .loading-text {
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      position: relative;
+      padding-left: 2.5rem;
+      background: linear-gradient(90deg, #e50914, #ff6b6b, #e50914);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientText 2s linear infinite;
+    }
+    
+    @keyframes gradientText {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .loading-dots {
+      display: flex;
+      margin-top: 1rem;
+      gap: 0.5rem;
+    }
+    
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #e50914;
+      animation: pulse 1.4s infinite;
+    }
+    
+    .dot:nth-child(2) {
+      animation-delay: 0.2s;
+      background: #ff6b6b;
+    }
+    
+    .dot:nth-child(3) {
+      animation-delay: 0.4s;
+      background: #b20710;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.5); opacity: 0.7; }
+    }
 
     .share-container {
       position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
@@ -61,7 +157,19 @@
   <div class="video-wrapper">
     <video id="player" class="video-js vjs-default-skin" controls autoplay muted playsinline preload="auto"></video>
   </div>
-  <div id="loading">Loading...</div>
+  <div id="loading">
+    <div class="spinner">
+      <div class="spinner-inner"></div>
+      <div class="spinner-inner"></div>
+      <div class="spinner-inner"></div>
+    </div>
+    <div class="loading-text">Preparing Your Stream</div>
+    <div class="loading-dots">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
 
   <div class="share-container">
     <button id="shareBtn" class="action-button"><i class="fas fa-share-alt"></i> Share</button>
@@ -75,44 +183,12 @@
   <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
-    const fileUrl = '{{file_url}}';
+    const fileUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
     const videoEl = document.getElementById('player');
     const player = videojs(videoEl, { techOrder:['html5'] });
 
     function showLoading(show) {
       document.getElementById('loading').style.display = show ? 'flex' : 'none';
-    }
-
-    // Default audio track selection for HLS
-    function selectDefaultAudioHls(hls) {
-      hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, function() {
-        const tracks = hls.audioTracks;
-        const hiIndex = tracks.findIndex(t => t.name.toLowerCase().includes('hindi') || t.lang === 'hi');
-        const enIndex = tracks.findIndex(t => t.name.toLowerCase().includes('english') || t.lang === 'en');
-        if (hiIndex !== -1) hls.audioTrack = hiIndex;
-        else if (enIndex !== -1) hls.audioTrack = enIndex;
-      });
-    }
-
-    // Default audio track selection for native HLS or DASH
-    function selectDefaultAudioNative() {
-      videoEl.addEventListener('loadedmetadata', function() {
-        const audioTracks = player.audioTracks();
-        for (let i = 0; i < audioTracks.length; i++) {
-          const track = audioTracks[i];
-          if (track.language === 'hi' || track.label.toLowerCase().includes('hindi')) {
-            track.enabled = true;
-            return;
-          }
-        }
-        for (let i = 0; i < audioTracks.length; i++) {
-          const track = audioTracks[i];
-          if (track.language === 'en' || track.label.toLowerCase().includes('english')) {
-            track.enabled = true;
-            return;
-          }
-        }
-      });
     }
 
     player.ready(() => {
@@ -137,15 +213,12 @@
             maxBufferHole: 0.5,
             lowLatencyMode: true,
           });
-          selectDefaultAudioHls(hls);
           hls.on(Hls.Events.ERROR, (event, data) => console.warn('HLS error', data));
           hls.loadSource(fileUrl);
           hls.attachMedia(videoEl);
           hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
-
         } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
           videoEl.src = fileUrl;
-          selectDefaultAudioNative();
         }
 
       } else {
@@ -165,6 +238,11 @@
       try { await navigator.clipboard.writeText(window.location.href); alert('Shareable link copied!'); }
       catch { alert('Failed to copy link.'); }
     });
+    
+    // Simulate loading for demo purposes - remove in production
+    setTimeout(() => {
+      showLoading(false);
+    }, 4000);
   </script>
 </body>
 </html>
