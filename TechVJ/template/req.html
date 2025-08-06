@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HLS Player with Smart Buffering</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.10/dist/hls.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple HLS Player</title>
   <style>
     body {
       margin: 0;
@@ -13,134 +12,21 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      font-family: Arial, sans-serif;
     }
-    
-    .player-container {
-      position: relative;
-      width: 100%;
-      max-width: 800px;
-    }
-    
+
     video {
       width: 100%;
+      max-width: 800px;
       background: #000;
-    }
-    
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      display: none;
-    }
-    
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top: 4px solid #fff;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin-bottom: 10px;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-  <div class="player-container">
-    <video id="player" controls playsinline></video>
-    <div class="loading-overlay" id="loadingOverlay">
-      <div class="spinner"></div>
-      <div>Buffering... (<span id="bufferStatus">0</span>/10s)</div>
-    </div>
-  </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const video = document.getElementById('player');
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      const bufferStatus = document.getElementById('bufferStatus');
-      
-      // Get the HLS stream URL from the template variable
-      const hlsStreamUrl = "{{file_url}}"; // This will be replaced with your actual URL
-      
-      // Check if HLS.js is supported
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          maxBufferLength: 30,
-          backBufferLength: 10,
-          maxBufferSize: 60 * 1000 * 1000, // 60MB buffer
-        });
-        
-        hls.loadSource(hlsStreamUrl);
-        hls.attachMedia(video);
-        
-        // Show loading when buffering
-        video.addEventListener('waiting', function() {
-          loadingOverlay.style.display = 'flex';
-          checkBufferStatus();
-        });
-        
-        // Hide loading when playing
-        video.addEventListener('playing', function() {
-          loadingOverlay.style.display = 'none';
-        });
-        
-        // Handle seeking
-        video.addEventListener('seeking', function() {
-          loadingOverlay.style.display = 'flex';
-          checkBufferStatus();
-        });
-        
-        // Check buffer status periodically
-        function checkBufferStatus() {
-          if (!video.buffered.length) return;
-          
-          const currentTime = video.currentTime;
-          const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-          const bufferAhead = bufferedEnd - currentTime;
-          
-          bufferStatus.textContent = bufferAhead.toFixed(1);
-          
-          // If we have enough buffer, hide the loading overlay
-          if (bufferAhead >= 10) {
-            loadingOverlay.style.display = 'none';
-            if (video.paused) {
-              video.play().catch(e => console.error('Play error:', e));
-            }
-          } else {
-            // Check again in 200ms
-            setTimeout(checkBufferStatus, 200);
-          }
-        }
-        
-        // Start playback when enough data is buffered
-        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-          video.play().catch(e => console.error('Auto-play prevented:', e));
-        });
-        
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // Native HLS support (Safari)
-        video.src = hlsStreamUrl;
-        video.addEventListener('loadedmetadata', function() {
-          video.play().catch(e => console.error('Auto-play prevented:', e));
-        });
-      } else {
-        alert('HLS playback is not supported in your browser');
-      }
-    });
-  </script>
+  <video id="player" controls playsinline>
+    <source src="{{file_url}}" type="application/vnd.apple.mpegurl">
+    Your browser does not support HLS playback.
+  </video>
+
 </body>
 </html>
