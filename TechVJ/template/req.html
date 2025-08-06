@@ -236,7 +236,7 @@
     ];
     
     // Randomly select a video source for demonstration
-    const fileUrl = videoSources[Math.floor(Math.random() * videoSources.length)];
+    const fileUrl = '{{file_url}}';
     
     const videoEl = document.getElementById('player');
     const player = videojs(videoEl, { techOrder:['html5'] });
@@ -348,3 +348,4 @@
   </script>
 </body>
 </html>
+
