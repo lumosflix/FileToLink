@@ -187,7 +187,7 @@
 
   <div class="share-container">
     <button id="shareBtn" class="action-button"><i class="fas fa-share-alt"></i> Share</button>
-    <button id="joinTelegram" class="action-button">
+    <button id="joinTelegram" class="action-button" onclick="window.open('telegram.html','_blank')">
       <i class="fab fa-telegram-plane"></i> Join us
     </button>
   </div>
@@ -195,13 +195,7 @@
   <script src="https://vjs.zencdn.net/7.21.0/video.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script>
-    // Simulated video sources for demonstration
-    const videoSources = [
-      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-      "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
-      "https://storage.googleapis.com/web-dev-assets/video-and-source-tags/chrome.mp4"
-    ];
+  <script>  
     
     // Randomly select a video source for demonstration
     const fileUrl = '{{file_url}}';
@@ -213,6 +207,9 @@
       document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
+    // Track if video has started
+    let hasVideoStarted = false;
+    
     player.ready(() => {
       showLoading(true);
       const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
@@ -248,22 +245,19 @@
         player.play().catch(()=>{});
       }
 
-      player.on('playing', () => showLoading(false));
-      player.on('waiting', () => {
-        console.log('Buffering...');
-        showLoading(true);
+      // Only show loading until video starts playing
+      player.on('playing', () => {
+        showLoading(false);
+        hasVideoStarted = true;
       });
+      
+      // Remove the waiting event listener to prevent reappearing
     });
 
     // Share button
     document.getElementById('shareBtn').addEventListener('click', async() => {
       try { await navigator.clipboard.writeText(window.location.href); alert('Shareable link copied!'); }
       catch { alert('Failed to copy link.'); }
-    });
-    
-    // Telegram button
-    document.getElementById('joinTelegram').addEventListener('click', () => {
-      window.open('telegram.html','_blank');
     });
   </script>
 </body>
