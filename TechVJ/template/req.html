@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
@@ -9,7 +10,15 @@
   <title>LumosFlix Player</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Video.js core CSS -->
+  <link href="https://vjs.zencdn.net/7.21.0/video-js.css" rel="stylesheet" /> 
   <style>
+   .video-js, video {
+      width: 100%;
+      max-width: 800px;
+      aspect-ratio: 16/9;
+      background: #000;
+    }
     html, body {
       margin: 0;
       padding: 0;
@@ -105,42 +114,57 @@
       background: rgba(0,0,0,0.7);
       z-index: 100;
     }
-    .action-button { padding:0.75rem 1.5rem; border:none; border-radius:30px; font-size:1rem; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:0.5rem; transition:transform 0.3s,box-shadow 0.3s; }
-    #shareBtn { background: linear-gradient(45deg,#e50914,#b20710); color:#fff; }
-    #shareBtn:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(229,9,20,0.4); }
-    #shareBtn:active { transform:scale(0.95); box-shadow:0 2px 8px rgba(229,9,20,0.3); }
-    #joinTelegram { padding:0.75rem 1.2rem; background: linear-gradient(135deg,#37aee2,#1a7ec8); color:#fff; }
-    #joinTelegram:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(0,0,0,0.3); }
-    #joinTelegram:active { transform:scale(0.95); box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+    .action-button { 
+      padding:0.75rem 1.5rem; 
+      border:none; 
+      border-radius:30px; 
+      font-size:1rem; 
+      font-weight:500; 
+      cursor:pointer; 
+      display:flex; 
+      align-items:center; 
+      gap:0.5rem; 
+      transition:transform 0.3s,box-shadow 0.3s; 
+    }
+    #shareBtn { 
+      background: linear-gradient(45deg,#e50914,#b20710); 
+      color:#fff; 
+    }
+    #shareBtn:hover { 
+      transform:translateY(-2px); 
+      box-shadow:0 5px 15px rgba(229,9,20,0.4); 
+    }
+    #shareBtn:active { 
+      transform:scale(0.95); 
+      box-shadow:0 2px 8px rgba(229,9,20,0.3); 
+    }
+    #joinTelegram { 
+      padding:0.75rem 1.2rem; 
+      background: linear-gradient(135deg,#37aee2,#1a7ec8); 
+      color:#fff; 
+    }
+    #joinTelegram:hover { 
+      transform:translateY(-2px); 
+      box-shadow:0 5px 15px rgba(0,0,0,0.3); 
+    }
+    #joinTelegram:active { 
+      transform:scale(0.95); 
+      box-shadow:0 2px 8px rgba(0,0,0,0.2); 
+    }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
   <header>
     <div class="logo">LumosFlix</div>
     <div class="subtitle">If there is a loading problem, do a refresh.</div>
-  </header>  <!-- Google AdSense (above Loading) -->  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6295092509916591" crossorigin="anonymous"></script>  <!-- Lumosflix --><ins class="adsbygoogle"
-style="display:block"
-data-ad-client="ca-pub-6295092509916591"
-data-ad-slot="3405911432"
-data-ad-format="auto"
-data-full-width-responsive="true"></ins>
+  </header>
 
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>  <div class="video-wrapper">
+  <div class="video-wrapper">
     <video id="videoPlayer" controls autoplay muted playsinline></video>
   </div>
-  <div id="loading">Loading...</div>  <!-- Google AdSense (below Loading) -->  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6295092509916591" crossorigin="anonymous"></script>  <!-- Lumosflix --><ins class="adsbygoogle"
-style="display:block"
-data-ad-client="ca-pub-6295092509916591"
-data-ad-slot="3405911432"
-data-ad-format="auto"
-data-full-width-responsive="true"></ins>
+  <div id="loading">Loading...</div>
 
-  <script>
-       (adsbygoogle = window.adsbygoogle || []).push({});
-  </script>  <div class="share-container">
+  <div class="share-container">
     <button id="shareBtn" class="action-button"><i class="fas fa-share-alt"></i> Share</button>
     <button id="joinTelegram" class="action-button" onclick="window.open('telegram.html','_blank')">
       <i class="fab fa-telegram-plane"></i> Join us
@@ -213,12 +237,16 @@ data-full-width-responsive="true"></ins>
     }
   </script>
   <script>
-// Prevent Ctrl + Wheel zoom
-window.addEventListener('wheel', function(e) {
-  if (e.ctrlKey) {
-    e.preventDefault();
-  }
-}, { passive: false });// Prevent Ctrl + '+' / Ctrl + '-' / Ctrl + '0' zoom shortcuts window.addEventListener('keydown', function(e) { const isCtrl = e.ctrlKey || e.metaKey; const blockedKeys = ['+', '-', '=', '0']; if (isCtrl && blockedKeys.includes(e.key)) { e.preventDefault(); } }); </script>
-
+    // UI interaction scripts
+    async function shareVideo() { 
+      try { 
+        await navigator.clipboard.writeText(window.location.href); 
+        alert('Shareable link copied!'); 
+      } catch { 
+        alert('Failed to copy link.'); 
+      } 
+    } 
+    document.getElementById('shareBtn').addEventListener('click', shareVideo);
+  </script>
 </body>
 </html>
