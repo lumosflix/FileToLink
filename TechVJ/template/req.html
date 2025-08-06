@@ -31,22 +31,19 @@
     .video-wrapper {
       position:fixed; top:100px; left:0; right:0; bottom:60px; background:#000; z-index:1;
     }
-    /* Premium loading overlay */
+    /* Loading overlay and spinner */
     #loading {
       position:fixed; top:100px; left:0; right:0; bottom:60px; background:rgba(0,0,0,0.85); z-index:9999;
-      display:flex; align-items:center; justify-content:center;
+      display:none; align-items:center; justify-content:center;
     }
-    .loader {
-      border:6px solid rgba(255,255,255,0.1);
-      border-top:6px solid #e50914;
+    #loading .spinner {
+      width:80px; height:80px;
+      border:8px solid rgba(255,255,255,0.2);
+      border-top:8px solid #e50914;
       border-radius:50%;
-      width:70px;
-      height:70px;
       animation:spin 1s linear infinite;
     }
-    @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-
-    .video-js { width:100%; height:100%; }
+    @keyframes spin { from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
 
     .share-container {
       position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
@@ -70,10 +67,10 @@
   </header>
 
   <div class="video-wrapper">
-    <!-- Unmuted by default -->
-    <video id="player" class="video-js vjs-default-skin" controls autoplay playsinline preload="auto"></video>
+    <video id="player" class="video-js vjs-default-skin" controls autoplay muted playsinline preload="auto"></video>
   </div>
-  <div id="loading"><div class="loader"></div></div>
+  <!-- Loading animation (first-time only) -->
+  <div id="loading"><div class="spinner"></div></div>
 
   <div class="share-container">
     <button id="shareBtn" class="action-button"><i class="fas fa-share-alt"></i> Share</button>
@@ -89,19 +86,17 @@
   <script>
     const fileUrl = '{{file_url}}';
     const videoEl = document.getElementById('player');
-    const player = videojs(videoEl, { techOrder:['html5'] });
-    let firstLoad = true;
+    const player = videojs(videoEl, { techOrder:['html5'], autoplay:true });
 
+    let isFirstLoad = true;
     function showLoading(show) {
       document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
     player.ready(() => {
-      // Ensure audio is unmuted
-      player.muted(false);
-
-      // Show animation only on first load
+      // Show loading on initial load
       showLoading(true);
+
       const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
       const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
 
@@ -135,13 +130,17 @@
         player.play().catch(()=>{});
       }
 
+      // Hide loading after first play
       player.on('playing', () => {
-        if (firstLoad) {
-          showLoading(false);
-          firstLoad = false;
+        showLoading(false);
+        isFirstLoad = false;
+      });
+      // Buffering events ignored after initial load
+      player.on('waiting', () => {
+        if (isFirstLoad) {
+          showLoading(true);
         }
       });
-      // Remove loading on buffering; no showLoading in waiting
     });
 
     // Share button
