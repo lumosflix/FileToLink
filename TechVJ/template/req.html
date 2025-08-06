@@ -183,7 +183,7 @@
   <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <script>
-    const fileUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+    const fileUrl = '{{file_url}}';
     const videoEl = document.getElementById('player');
     const player = videojs(videoEl, { techOrder:['html5'] });
 
@@ -246,3 +246,4 @@
   </script>
 </body>
 </html>
+
