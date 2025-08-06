@@ -1,265 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>LumosFlix Player</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Video.js core CSS -->
-  <link href="https://vjs.zencdn.net/7.21.0/video-js.css" rel="stylesheet" />
-  <style>
-    html, body { margin:0; padding:0; height:100%; background:#000; color:#fff; font-family:'Poppins',sans-serif; user-select:none; -webkit-user-drag:none; }
-    *:focus, *:focus-visible, button::-moz-focus-inner, :-moz-focusring { outline:none!important; box-shadow:none!important; border:0!important; }
-    * { -webkit-tap-highlight-color: transparent!important; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Red Neon HLS Player</title>
 
-    header {
-      background: linear-gradient(135deg,#000 0%,#2d0a0a 100%);
-      padding:1rem; text-align:center; position:fixed; top:0; left:0; right:0; z-index:10000;
-      box-shadow:0 4px 15px rgba(229,9,20,0.1);
+  <!-- Plyr CSS -->
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />
+
+  <style>
+    :root {
+      --plyr-color-main: #ff3c3c;
     }
-    .logo { font-size:1.75rem; font-weight:700; background:linear-gradient(45deg,#e50914,#ff6b6b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    .subtitle {
-      margin-top:0.25rem; font-size:0.9rem; color:#aaa; position:relative;
+
+    body {
+      margin: 0;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Segoe UI', sans-serif;
     }
-    .subtitle::after {
-      content:'↓'; display:block; text-align:center; margin-top:4px; font-size:1.25rem; color:#888; animation:bounce 2s infinite;
-    }
-    @keyframes bounce { 0%,100%{transform:translateY(0);}50%{transform:translateY(4px);} }
 
     .video-wrapper {
-      position:fixed; 
-      top:100px; 
-      left:0; 
-      right:0; 
-      bottom:60px; 
-      background:#000; 
-      z-index:1; /* Player below loading layer */
+      width: 90%;
+      max-width: 900px;
+      overflow: hidden;
     }
-    #loading {
-      position:fixed; 
-      top:100px; 
-      left:0; 
-      right:0; 
-      bottom:60px; 
-      background:#000; /* Solid black background */
-      z-index:9999; /* Loading above player */
-      display:none; 
-      align-items:center; 
-      justify-content:center; 
-      flex-direction: column;
-    }
-    .video-js { width:100%; height:100%; }
-    
-    /* Modern Loading Animation */
-    .spinner {
-      width: 80px;
-      height: 80px;
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-    
-    .spinner-inner {
-      position: absolute;
+
+    video {
       width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      border: 4px solid transparent;
-      border-top: 4px solid #e50914;
-      animation: spin 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-    }
-    
-    .spinner-inner:nth-child(2) {
-      border: 4px solid transparent;
-      border-top: 4px solid #ff6b6b;
-      animation: spin-reverse 1.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-      width: 85%;
-      height: 85%;
-      top: 7.5%;
-      left: 7.5%;
-    }
-    
-    .spinner-inner:nth-child(3) {
-      border: 4px solid transparent;
-      border-top: 4px solid #b20710;
-      animation: spin 2.4s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-      width: 70%;
-      height: 70%;
-      top: 15%;
-      left: 15%;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    @keyframes spin-reverse {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(-360deg); }
-    }
-    
-    .loading-text {
-      color: #fff;
-      font-size: 1.2rem;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-      position: relative;
-      padding-left: 2.5rem;
-      background: linear-gradient(90deg, #e50914, #ff6b6b, #e50914);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradientText 2s linear infinite;
-    }
-    
-    @keyframes gradientText {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 200% 50%; }
+      height: auto;
+      display: block;
+      background: #000;
     }
 
-    .loading-dots {
-      display: flex;
-      margin-top: 1rem;
-      gap: 0.5rem;
-    }
-    
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #e50914;
-      animation: pulse 1.4s infinite;
-    }
-    
-    .dot:nth-child(2) {
-      animation-delay: 0.2s;
-      background: #ff6b6b;
-    }
-    
-    .dot:nth-child(3) {
-      animation-delay: 0.4s;
-      background: #b20710;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.5); opacity: 0.7; }
+    .plyr__controls {
+      background: transparent !important;
+      backdrop-filter: none !important;
+      box-shadow: none !important;
     }
 
-    .share-container {
-      position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center;
-      padding:calc(0.5rem + env(safe-area-inset-bottom,0)) 1rem; background:rgba(0,0,0,0.7); z-index:100;
+    .plyr__control {
+      border-radius: 50% !important;
+      transition: all 0.2s ease-in-out;
+      background-color: rgba(255, 60, 60, 0.1) !important;
     }
-    .action-button { padding:0.75rem 1.5rem; border:none; border-radius:30px; font-size:1rem; font-weight:500;
-      cursor:pointer; display:flex; align-items:center; gap:0.5rem; transition:transform 0.3s,box-shadow 0.3s;
+
+    .plyr__control:hover {
+      background-color: rgba(255, 60, 60, 0.3) !important;
     }
-    #shareBtn { background:linear-gradient(45deg,#e50914,#b20710); color:#fff; }
-    #shareBtn:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(229,9,20,0.4); }
-    #shareBtn:active { transform:scale(0.95); box-shadow:0 2px 8px rgba(229,9,20,0.3); }
-    #joinTelegram { background:linear-gradient(135deg,#37aee2,#1a7ec8); color:#fff; }
-    #joinTelegram:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(0,0,0,0.3); }
-    #joinTelegram:active { transform:scale(0.95); box-shadow:0 2px 8px rgba(0,0,0,0.2); }
+
+    @media (max-width: 600px) {
+      .video-wrapper {
+        border-radius: 0;
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="logo">LumosFlix</div>
-    <div class="subtitle">If there is a loading problem, do a refresh.</div>
-  </header>
 
   <div class="video-wrapper">
-    <video id="player" class="video-js vjs-default-skin" controls autoplay muted playsinline preload="auto"></video>
-  </div>
-  
-  <!-- Loading layer placed above video player -->
-  <div id="loading">
-    <div class="spinner">
-      <div class="spinner-inner"></div>
-      <div class="spinner-inner"></div>
-      <div class="spinner-inner"></div>
-    </div>
-    <div class="loading-text">Preparing Your Stream</div>
-    <div class="loading-dots">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot"></div>
-    </div>
+    <video id="player" controls playsinline></video>
   </div>
 
-  <div class="share-container">
-    <button id="shareBtn" class="action-button"><i class="fas fa-share-alt"></i> Share</button>
-    <button id="joinTelegram" class="action-button" onclick="window.open('telegram.html','_blank')">
-      <i class="fab fa-telegram-plane"></i> Join us
-    </button>
-  </div>
-
-  <!-- Libraries -->
-  <script src="https://vjs.zencdn.net/7.21.0/video.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
+  <!-- HLS.js -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <!-- Plyr JS -->
+  <script src="https://cdn.plyr.io/3.6.9/plyr.polyfilled.js"></script>
+
   <script>
-    const fileUrl = '{{file_url}}';
-    const videoEl = document.getElementById('player');
-    const player = videojs(videoEl, { techOrder:['html5'] });
+    document.addEventListener('DOMContentLoaded', () => {
+      const video = document.getElementById('player');
+      const url = "{{file_url}}"; // Replace this dynamically or manually
 
-    function showLoading(show) {
-      document.getElementById('loading').style.display = show ? 'flex' : 'none';
-    }
-
-    player.ready(() => {
-      showLoading(true);
-      const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
-      const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
-
-      if (isMkv) {
-        player.tech().options_ = player.tech().options_ || {};
-        player.tech().options_.matroska = { chunkSize:4*1024*1024 };
-        player.src({ src:fileUrl, type:'video/x-matroska' });
-        player.play().catch(()=>{});
-
-      } else if (isHls) {
-        if (Hls.isSupported()) {
-          const hls = new Hls({
-            maxBufferLength: 60,
-            maxMaxBufferLength: 120,
-            maxBufferSize: 1024 * 1024 * 512,
-            backBufferLength: 30,
-            startFragPrefetch: true,
-            maxBufferHole: 0.5,
-            lowLatencyMode: true,
-          });
-          hls.on(Hls.Events.ERROR, (event, data) => console.warn('HLS error', data));
-          hls.loadSource(fileUrl);
-          hls.attachMedia(videoEl);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
-        } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
-          videoEl.src = fileUrl;
-        }
-
-      } else {
-        player.src({ src:fileUrl, type:'video/mp4' });
-        player.play().catch(()=>{});
+      if (Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play();
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.addEventListener('loadedmetadata', () => video.play());
       }
 
-      player.on('playing', () => showLoading(false));
-      player.on('waiting', () => {
-        console.log('Buffering...');
-        showLoading(true);
+      new Plyr(video, {
+        controls: [
+          'play-large', 'play', 'progress', 'current-time',
+          'mute', 'volume', 'fullscreen'
+        ],
+        seekTime: 10,
+        hideControls: false,
       });
     });
-
-    // Share button
-    document.getElementById('shareBtn').addEventListener('click', async() => {
-      try { await navigator.clipboard.writeText(window.location.href); alert('Shareable link copied!'); }
-      catch { alert('Failed to copy link.'); }
-    });
-    
-    // Simulate loading for demo purposes - remove in production
-    setTimeout(() => {
-      showLoading(false);
-    }, 4000);
   </script>
+
 </body>
 </html>
