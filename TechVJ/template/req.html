@@ -1,448 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Enhanced HLS Player</title>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.10/dist/hls.min.js"></script>
+  <title>Buffered MKV/MP4 Player</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+      margin: 0;
+      background: #000;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-      color: #fff;
+      height: 100vh;
     }
-    
-    .container {
-      width: 100%;
-      max-width: 900px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 15px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    
-    .player-header {
-      padding: 20px;
-      text-align: center;
-      background: rgba(0, 0, 0, 0.4);
-      border-bottom: 1px solid #444;
-    }
-    
-    .player-header h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-      background: linear-gradient(90deg, #ff8a00, #da1b60);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-    
-    .player-header p {
-      color: #aaa;
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-    
-    .player-container {
-      position: relative;
-      background: #000;
-    }
-    
     video {
       width: 100%;
-      display: block;
-      outline: none;
-    }
-    
-    .loading-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
-    
-    .loading-overlay.active {
-      opacity: 1;
-      pointer-events: all;
-    }
-    
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #ff8a00;
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 20px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .buffer-text {
-      font-size: 18px;
-      text-align: center;
-      margin-top: 10px;
-    }
-    
-    .buffer-info {
-      color: #ff8a00;
-      font-weight: bold;
-    }
-    
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      padding: 15px 20px;
-      background: rgba(0, 0, 0, 0.4);
-      border-top: 1px solid #444;
-    }
-    
-    .btn {
-      background: linear-gradient(90deg, #ff8a00, #da1b60);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 30px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(218, 27, 96, 0.4);
-    }
-    
-    .btn:active {
-      transform: translateY(0);
-    }
-    
-    .btn i {
-      font-size: 18px;
-    }
-    
-    .status {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 12px 20px;
-      border-radius: 10px;
-      min-width: 200px;
-    }
-    
-    .status-item {
-      display: flex;
-      justify-content: space-between;
-    }
-    
-    .status-label {
-      color: #aaa;
-    }
-    
-    .status-value {
-      font-weight: bold;
-      color: #ff8a00;
-    }
-    
-    .features {
-      padding: 25px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-    
-    .feature-card {
-      background: rgba(30, 30, 40, 0.6);
-      border-radius: 10px;
-      padding: 20px;
-      border: 1px solid #444;
-      transition: transform 0.3s ease;
-    }
-    
-    .feature-card:hover {
-      transform: translateY(-5px);
-      border-color: #ff8a00;
-    }
-    
-    .feature-card h3 {
-      color: #ff8a00;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .feature-card p {
-      color: #ccc;
-      line-height: 1.6;
-    }
-    
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: #aaa;
-      font-size: 14px;
-      border-top: 1px solid #333;
-      margin-top: 20px;
-    }
-    
-    @media (max-width: 768px) {
-      .controls {
-        flex-direction: column;
-        gap: 15px;
-        align-items: center;
-      }
-      
-      .player-header h1 {
-        font-size: 24px;
-      }
+      max-width: 800px;
+      background: #000;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="player-header">
-      <h1>Enhanced HLS Player</h1>
-      <p>Smart buffering technology that preloads content for smooth playback and handles seek operations intelligently</p>
-    </div>
-    
-    <div class="player-container">
-      <video id="player" controls playsinline></video>
-      <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <div class="buffer-text">
-          Buffering: <span class="buffer-info" id="bufferInfo">0.0s / 10.0s</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="controls">
-      <button class="btn" id="loadBtn">
-        <i>▶</i> Load and Play Video
-      </button>
-      <div class="status">
-        <div class="status-item">
-          <span class="status-label">Current state:</span>
-          <span class="status-value" id="statusState">Idle</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Buffer ahead:</span>
-          <span class="status-value" id="statusBuffer">0.0s</span>
-        </div>
-      </div>
-    </div>
-    
-    <div class="features">
-      <div class="feature-card">
-        <h3><i>⏱️</i> Smart Buffering</h3>
-        <p>Pre-buffers 10 seconds of content before playback starts and after seek operations to ensure smooth playback.</p>
-      </div>
-      <div class="feature-card">
-        <h3><i>🔍</i> Adaptive Seeking</h3>
-        <p>When seeking to a new position, the player buffers 10 seconds from the new point before resuming playback.</p>
-      </div>
-      <div class="feature-card">
-        <h3><i>📊</i> Performance Monitoring</h3>
-        <p>Real-time display of buffer status and player state to help understand the buffering process.</p>
-      </div>
-    </div>
-    
-    <div class="footer">
-      <p>Enhanced HLS Player with Adaptive Buffering | Supports MP4 and MKV formats</p>
-    </div>
-  </div>
-
+  <video id="player" controls playsinline></video>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    (async () => {
+      const url = `{{file_url}}`;
       const video = document.getElementById('player');
-      const loadBtn = document.getElementById('loadBtn');
-      const loadingOverlay = document.getElementById('loadingOverlay');
-      const bufferInfo = document.getElementById('bufferInfo');
-      const statusState = document.getElementById('statusState');
-      const statusBuffer = document.getElementById('statusBuffer');
-      
-      let hls;
-      let bufferCheckInterval;
-      let isInitialPlay = true;
-      
-      // Sample video URLs (can be replaced with your own)
-      const sampleVideos = [
-        'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-        'https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8'
-      ];
-      
-      // Initialize player
-      function initPlayer() {
-        if (hls) {
-          hls.destroy();
-        }
-        
-        // Create new HLS instance
-        hls = new Hls({
-          maxBufferLength: 30,
-          maxMaxBufferLength: 60,
-          backBufferLength: 10,
-          initialLiveManifestSize: 1
-        });
-        
-        hls.attachMedia(video);
-        
-        // Set up HLS event handlers
-        hls.on(Hls.Events.MEDIA_ATTACHED, function() {
-          statusState.textContent = 'Loading video...';
-          console.log('Media attached');
-          
-          // Load a sample video
-          const randomVideo = sampleVideos[Math.floor(Math.random() * sampleVideos.length)];
-          hls.loadSource(randomVideo);
-          
-          hls.on(Hls.Events.MANIFEST_PARSED, function() {
-            console.log('Manifest parsed');
-          });
-        });
-        
-        hls.on(Hls.Events.ERROR, function(event, data) {
-          console.error('HLS error:', data);
-          statusState.textContent = 'Error: ' + data.details;
-        });
-        
-        // Set up video event listeners
-        video.addEventListener('waiting', handleBuffering);
-        video.addEventListener('seeking', handleSeeking);
-        video.addEventListener('playing', handlePlaying);
-        video.addEventListener('timeupdate', handleTimeUpdate);
-        video.addEventListener('loadedmetadata', handleMetadataLoaded);
-        
-        // Show loading overlay
-        setLoading(true, "Loading video source...");
-      }
-      
-      // Handle buffering state
-      function handleBuffering() {
-        statusState.textContent = 'Buffering...';
-        setLoading(true, "Buffering content...");
-        
-        // Check buffer status periodically
-        clearInterval(bufferCheckInterval);
-        bufferCheckInterval = setInterval(checkBufferStatus, 200);
-      }
-      
-      // Handle seeking
-      function handleSeeking() {
-        statusState.textContent = 'Seeking...';
-        setLoading(true, "Buffering after seek...");
-        
-        // Check buffer status periodically
-        clearInterval(bufferCheckInterval);
-        bufferCheckInterval = setInterval(checkBufferStatus, 200);
-      }
-      
-      // Handle playing state
-      function handlePlaying() {
-        statusState.textContent = 'Playing';
-        setLoading(false);
-        clearInterval(bufferCheckInterval);
-      }
-      
-      // Handle time updates
-      function handleTimeUpdate() {
-        updateBufferStatus();
-      }
-      
-      // Handle metadata loaded
-      function handleMetadataLoaded() {
-        if (isInitialPlay) {
-          isInitialPlay = false;
-          statusState.textContent = 'Ready to play';
-          setLoading(false);
-        }
-      }
-      
-      // Check buffer status
-      function checkBufferStatus() {
-        if (!video.buffered.length) return;
-        
-        const currentTime = video.currentTime;
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        const bufferAhead = bufferedEnd - currentTime;
-        
-        // Update status display
-        statusBuffer.textContent = bufferAhead.toFixed(1) + 's';
-        bufferInfo.textContent = bufferAhead.toFixed(1) + 's / 10.0s';
-        
-        // Check if we have buffered enough
-        if (bufferAhead >= 10) {
-          // Resume playback if paused
-          if (video.paused) {
-            video.play().catch(e => console.error('Play error:', e));
-          }
-        }
-      }
-      
-      // Update buffer status display
-      function updateBufferStatus() {
-        if (!video.buffered.length) return;
-        
-        const currentTime = video.currentTime;
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        const bufferAhead = bufferedEnd - currentTime;
-        
-        statusBuffer.textContent = bufferAhead.toFixed(1) + 's';
-      }
-      
-      // Set loading state
-      function setLoading(isLoading, message = "") {
-        if (isLoading) {
-          loadingOverlay.classList.add('active');
-          bufferInfo.textContent = "0.0s / 10.0s";
-          if (message) {
-            statusState.textContent = message;
-          }
-        } else {
-          loadingOverlay.classList.remove('active');
-        }
-      }
-      
-      // Load button event listener
-      loadBtn.addEventListener('click', function() {
-        initPlayer();
-        statusState.textContent = 'Initializing player...';
-      });
-      
-      // Initialize on page load with a small delay
-      setTimeout(() => {
-        statusState.textContent = 'Click "Load and Play Video" to start';
-      }, 1000);
+      if (!('MediaSource' in window)) {
+        // fallback to simple src
+        video.src = url;
+        return;
+      }const mediaSource = new MediaSource();
+  video.src = URL.createObjectURL(mediaSource);
+
+  let sourceBuffer;
+  // Adjust mimeCodec to match your encoding. MKV may require video/webm or video/mp4
+  const mimeCodec = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+  const SEGMENT_DURATION = 10; // seconds
+  const approxBitrate = 500_000; // bytes per second estimate, adjust as needed
+
+  mediaSource.addEventListener('sourceopen', async () => {
+    sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+    await fetchSegment(0);
+  });
+
+  async function fetchSegment(startSec) {
+    // Calculate approximate byte range
+    const startByte = Math.floor(startSec * approxBitrate);
+    const endByte = Math.floor((startSec + SEGMENT_DURATION) * approxBitrate) - 1;
+    const res = await fetch(url, { headers: { 'Range': `bytes=${startByte}-${endByte}` } });
+    const data = await res.arrayBuffer();
+
+    return new Promise(resolve => {
+      sourceBuffer.addEventListener('updateend', () => {
+        resolve();
+      }, { once: true });
+      sourceBuffer.appendBuffer(data);
+    }).then(() => {
+      video.currentTime = startSec;
+      video.play();
     });
+  }
+
+  video.addEventListener('seeking', () => {
+    const target = Math.max(0, video.currentTime - SEGMENT_DURATION);
+    // Reset buffer
+    if (mediaSource.readyState === 'open') {
+      if (sourceBuffer.updating) sourceBuffer.abort();
+      mediaSource.removeSourceBuffer(sourceBuffer);
+      sourceBuffer = mediaSource.addSourceBuffer(mimeCodec);
+      fetchSegment(target);
+    }
+  });
+})();
+
   </script>
 </body>
 </html>
