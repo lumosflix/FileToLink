@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Universal Video Player (HLS & MKV)</title>
+  <title>Universal Video Player (HLS & MKV) – Optimized</title>
+
   <!-- Video.js core CSS -->
   <link href="https://vjs.zencdn.net/7.21.0/video-js.css" rel="stylesheet" />
+
   <style>
     body {
       margin: 0;
@@ -24,8 +26,14 @@
   </style>
 </head>
 <body>
-  <!-- Unified player element -->
-  <video id="player" class="video-js vjs-default-skin" controls playsinline></video>
+  <!-- Unified player element with preload -->
+  <video
+    id="player"
+    class="video-js vjs-default-skin"
+    controls
+    playsinline
+    preload="auto"
+  ></video>
 
   <!-- Libraries -->
   <script src="https://vjs.zencdn.net/7.21.0/video.min.js"></script>
@@ -40,29 +48,44 @@
     const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
     const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
     const videoEl = document.getElementById('player');
-    const player = videojs(videoEl);
+    const player = videojs(videoEl, {
+      techOrder: ['html5']
+    });
 
     if (isMkv) {
-      // MKV via video.js + Matroska plugin with larger chunkSize
+      // MKV via video.js + Matroska plugin
       player.ready(() => {
+        // Increase chunkSize to 2 MB to reduce HTTP requests
         player.tech().options_ = player.tech().options_ || {};
-        player.tech().options_.matroska = { chunkSize: 256 * 1024 }; // 256KB per request
+        player.tech().options_.matroska = {
+          chunkSize: 2 * 1024 * 1024, // 2 MB per range request
+        };
         player.src({ src: fileUrl, type: 'video/x-matroska' });
         player.play().catch(err => console.warn('Play prevented:', err));
       });
+
     } else if (isHls) {
-      // HLS playback
+      // HLS playback via hls.js with aggressive buffering
       if (Hls.isSupported()) {
-        const hls = new Hls();
+        const hls = new Hls({
+          maxBufferLength: 30,       // keep 30 s of buffer
+          maxMaxBufferLength: 60,    // allow up to 60 s
+          startFragPrefetch: true,   // load next fragment early
+          maxBufferHole: 0.5,        // fill holes quickly
+        });
         hls.loadSource(fileUrl);
         hls.attachMedia(videoEl);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          videoEl.play().catch(() => {});
+        });
       } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
         videoEl.src = fileUrl;
       } else {
-        console.error('HLS not supported');
+        console.error('HLS not supported on this browser');
       }
+
     } else {
-      // Fallback (e.g. MP4)
+      // Fallback (MP4, WebM, etc.)
       player.ready(() => {
         player.src({ src: fileUrl, type: 'video/mp4' });
         player.play().catch(() => {});
