@@ -2,17 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Red Neon HLS Player</title>
-
-  <!-- Plyr CSS -->
-  <link rel="stylesheet" href="https://cdn.plyr.io/3.6.9/plyr.css" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Universal Video Player (HLS & MKV)</title>
+  <!-- Video.js core CSS -->
+  <link href="https://vjs.zencdn.net/7.21.0/video-js.css" rel="stylesheet" />
   <style>
-    :root {
-      --plyr-color-main: #ff3c3c;
-    }
-
     body {
       margin: 0;
       background: #000;
@@ -20,84 +14,63 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      font-family: 'Segoe UI', sans-serif;
     }
-
-    .video-wrapper {
-      width: 90%;
-      max-width: 900px;
-      overflow: hidden;
-    }
-
-    video {
+    .video-js, video {
       width: 100%;
-      height: auto;
-      display: block;
+      max-width: 800px;
+      aspect-ratio: 16/9;
       background: #000;
-    }
-
-    .plyr__controls {
-      background: transparent !important;
-      backdrop-filter: none !important;
-      box-shadow: none !important;
-    }
-
-    .plyr__control {
-      border-radius: 50% !important;
-      transition: all 0.2s ease-in-out;
-      background-color: rgba(255, 60, 60, 0.1) !important;
-    }
-
-    .plyr__control:hover {
-      background-color: rgba(255, 60, 60, 0.3) !important;
-    }
-
-    @media (max-width: 600px) {
-      .video-wrapper {
-        border-radius: 0;
-      }
     }
   </style>
 </head>
 <body>
+  <!-- Unified player element -->
+  <video id="player" class="video-js vjs-default-skin" controls playsinline></video>
 
-  <div class="video-wrapper">
-    <video id="player" controls playsinline></video>
-  </div>
-
-  <!-- HLS.js -->
+  <!-- Video.js core library -->
+  <script src="https://vjs.zencdn.net/7.21.0/video.min.js"></script>
+  <!-- video.js Matroska plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/videojs-matroska/dist/videojs-matroska.min.js"></script>
+  <!-- hls.js for HLS playback on non-Safari browsers -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-  <!-- Plyr JS -->
-  <script src="https://cdn.plyr.io/3.6.9/plyr.polyfilled.js"></script>
-
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const video = document.getElementById('player');
-      const url = "{{file_url}}"; // Replace this dynamically or manually
+    // Template-injected URL
+    const fileUrl = '{{file_url}}';
 
+    // Determine MIME type by extension
+    const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
+    const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
+
+    // Grab the video element
+    const videoEl = document.getElementById('player');
+
+    // Initialize video.js player
+    const player = videojs(videoEl);
+
+    if (isMkv) {
+      // MKV via video.js + Matroska plugin
+      player.ready(() => {
+        player.src({ src: fileUrl, type: 'video/x-matroska' });
+        player.play().catch(err => console.warn('Play prevented:', err));
+      });
+    } else if (isHls) {
+      // HLS stream
       if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play();
-        });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = url;
-        video.addEventListener('loadedmetadata', () => video.play());
+        hls.loadSource(fileUrl);
+        hls.attachMedia(videoEl);
+      } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+        videoEl.src = fileUrl;
+      } else {
+        console.error('HLS not supported in this browser');
       }
-
-      new Plyr(video, {
-        controls: [
-          'play-large', 'play', 'progress', 'current-time',
-          'mute', 'volume', 'fullscreen'
-        ],
-        seekTime: 10,
-        hideControls: false,
+    } else {
+      // Fallback for other types (e.g., MP4)
+      player.ready(() => {
+        player.src({ src: fileUrl, type: 'video/mp4' });
       });
-    });
+    }
   </script>
-
 </body>
 </html>
