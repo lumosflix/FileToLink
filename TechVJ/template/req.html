@@ -499,7 +499,7 @@
       // Set video source after loading
       setTimeout(() => {
         player.src({
-          src: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+          src: '{{file_url}}';
           type: 'video/mp4'
         });
       }, 1000);
@@ -523,3 +523,4 @@
   </script>
 </body>
 </html>
+
