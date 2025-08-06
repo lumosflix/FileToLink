@@ -31,10 +31,24 @@
     .video-wrapper {
       position:fixed; top:100px; left:0; right:0; bottom:60px; background:#000; z-index:1;
     }
+    /* Premium accent spinner */
     #loading {
       position:fixed; top:100px; left:0; right:0; bottom:60px; background:rgba(0,0,0,0.8); z-index:9999;
-      display:none; align-items:center; justify-content:center; font-size:1.5rem; color:#fff;
+      display:flex; align-items:center; justify-content:center;
     }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top: 4px solid #e50914;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     .video-js { width:100%; height:100%; }
 
     .share-container {
@@ -59,9 +73,10 @@
   </header>
 
   <div class="video-wrapper">
-    <video id="player" class="video-js vjs-default-skin" controls autoplay muted playsinline preload="auto"></video>
+    <!-- Removed muted attribute to unmute by default -->
+    <video id="player" class="video-js vjs-default-skin" controls autoplay playsinline preload="auto"></video>
   </div>
-  <div id="loading">Loading...</div>
+  <div id="loading"><div class="spinner"></div></div>
 
   <div class="share-container">
     <button id="shareBtn" class="action-button"><i class="fas fa-share-alt"></i> Share</button>
@@ -78,13 +93,18 @@
     const fileUrl = '{{file_url}}';
     const videoEl = document.getElementById('player');
     const player = videojs(videoEl, { techOrder:['html5'] });
+    let initialLoad = true;
 
     function showLoading(show) {
       document.getElementById('loading').style.display = show ? 'flex' : 'none';
     }
 
     player.ready(() => {
+      // Show spinner only on first load
       showLoading(true);
+      // Unmute by default
+      player.muted(false);
+
       const isMkv = fileUrl.toLowerCase().endsWith('.mkv');
       const isHls = fileUrl.toLowerCase().endsWith('.m3u8');
 
@@ -92,8 +112,6 @@
         player.tech().options_ = player.tech().options_ || {};
         player.tech().options_.matroska = { chunkSize:4*1024*1024 };
         player.src({ src:fileUrl, type:'video/x-matroska' });
-        player.play().catch(()=>{});
-
       } else if (isHls) {
         if (Hls.isSupported()) {
           const hls = new Hls({
@@ -108,21 +126,22 @@
           hls.on(Hls.Events.ERROR, (event, data) => console.warn('HLS error', data));
           hls.loadSource(fileUrl);
           hls.attachMedia(videoEl);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
         } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
           videoEl.src = fileUrl;
         }
-
       } else {
         player.src({ src:fileUrl, type:'video/mp4' });
-        player.play().catch(()=>{});
       }
 
-      player.on('playing', () => showLoading(false));
-      player.on('waiting', () => {
-        console.log('Buffering...');
-        showLoading(true);
+      player.play().catch(()=>{});
+
+      // Hide spinner when first play starts
+      player.on('playing', () => {
+        showLoading(false);
+        initialLoad = false;
       });
+      // Remove recurring buffering spinner
+      // player.on('waiting', () => {});
     });
 
     // Share button
