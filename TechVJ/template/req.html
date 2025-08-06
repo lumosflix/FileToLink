@@ -43,14 +43,14 @@
       bottom:60px; 
       background:#000;
       z-index:9999;
-      display:none; 
+      display:flex; /* Changed to flex to show initially */
       align-items:center; 
       justify-content:center; 
       flex-direction: column;
     }
     .video-js { width:100%; height:100%; }
     
-    /* Enhanced Loading Animation */
+    /* Loading Animation */
     .spinner {
       width: 80px;
       height: 80px;
@@ -159,33 +159,6 @@
     #joinTelegram { background:linear-gradient(135deg,#37aee2,#1a7ec8); color:#fff; }
     #joinTelegram:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(0,0,0,0.3); }
     #joinTelegram:active { transform:scale(0.95); box-shadow:0 2px 8px rgba(0,0,0,0.2); }
-    
-    /* Added status indicator */
-    .status-indicator {
-      position: fixed;
-      top: 75px;
-      right: 20px;
-      background: rgba(0,0,0,0.7);
-      padding: 8px 15px;
-      border-radius: 20px;
-      font-size: 0.85rem;
-      color: #ff6b6b;
-      z-index: 10001;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .status-indicator .indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #ff6b6b;
-      animation: pulse 1.4s infinite;
-    }
-    .status-indicator .indicator.active {
-      background: #00ff00;
-      box-shadow: 0 0 10px #00ff00;
-    }
   </style>
 </head>
 <body>
@@ -193,11 +166,6 @@
     <div class="logo">LumosFlix</div>
     <div class="subtitle">If there is a loading problem, do a refresh.</div>
   </header>
-  
-  <div class="status-indicator">
-    <div class="indicator"></div>
-    <span id="statusText">Loading player...</span>
-  </div>
 
   <div class="video-wrapper">
     <video id="player" class="video-js vjs-default-skin" controls autoplay muted playsinline preload="auto"></video>
@@ -240,20 +208,9 @@
     
     const videoEl = document.getElementById('player');
     const player = videojs(videoEl, { techOrder:['html5'] });
-    const statusIndicator = document.querySelector('.status-indicator .indicator');
-    const statusText = document.getElementById('statusText');
 
     function showLoading(show) {
       document.getElementById('loading').style.display = show ? 'flex' : 'none';
-      
-      // Update status indicator
-      if (show) {
-        statusIndicator.classList.remove('active');
-        statusText.textContent = 'Buffering...';
-      } else {
-        statusIndicator.classList.add('active');
-        statusText.textContent = 'Playing';
-      }
     }
 
     player.ready(() => {
@@ -278,16 +235,10 @@
             maxBufferHole: 0.5,
             lowLatencyMode: true,
           });
-          hls.on(Hls.Events.ERROR, (event, data) => {
-            console.warn('HLS error', data);
-            statusText.textContent = 'Stream error';
-            statusIndicator.style.background = '#ff0000';
-          });
+          hls.on(Hls.Events.ERROR, (event, data) => console.warn('HLS error', data));
           hls.loadSource(fileUrl);
           hls.attachMedia(videoEl);
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            videoEl.play();
-          });
+          hls.on(Hls.Events.MANIFEST_PARSED, () => videoEl.play());
         } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
           videoEl.src = fileUrl;
         }
@@ -297,55 +248,23 @@
         player.play().catch(()=>{});
       }
 
-      player.on('playing', () => {
-        showLoading(false);
-        statusText.textContent = 'Playing';
-        statusIndicator.classList.add('active');
-      });
-      
+      player.on('playing', () => showLoading(false));
       player.on('waiting', () => {
+        console.log('Buffering...');
         showLoading(true);
-        statusText.textContent = 'Buffering...';
-        statusIndicator.classList.remove('active');
-      });
-      
-      player.on('error', () => {
-        statusText.textContent = 'Playback error';
-        statusIndicator.style.background = '#ff0000';
       });
     });
 
     // Share button
     document.getElementById('shareBtn').addEventListener('click', async() => {
-      try { 
-        await navigator.clipboard.writeText(window.location.href); 
-        statusText.textContent = 'Link copied!';
-        setTimeout(() => {
-          if (!document.getElementById('loading').style.display) {
-            statusText.textContent = 'Playing';
-          }
-        }, 2000);
-      }
-      catch { 
-        statusText.textContent = 'Copy failed';
-        setTimeout(() => {
-          if (!document.getElementById('loading').style.display) {
-            statusText.textContent = 'Playing';
-          }
-        }, 2000);
-      }
+      try { await navigator.clipboard.writeText(window.location.href); alert('Shareable link copied!'); }
+      catch { alert('Failed to copy link.'); }
     });
     
     // Telegram button
     document.getElementById('joinTelegram').addEventListener('click', () => {
-      statusText.textContent = 'Opening Telegram...';
-      setTimeout(() => {
-        if (!document.getElementById('loading').style.display) {
-          statusText.textContent = 'Playing';
-        }
-      }, 2000);
+      window.open('telegram.html','_blank');
     });
   </script>
 </body>
 </html>
-
