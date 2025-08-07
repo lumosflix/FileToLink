@@ -25,7 +25,7 @@ async def render_page(id, secure_hash, src=None):
     tag = file_data.mime_type.split("/")[0].strip()
     file_size = humanbytes(file_data.file_size)
     if tag in ["video", "audio"]:
-        template_file = "https://lumosflix.netlify.app/player.html"
+        template_file = "TechVJ/template/req.html"
     else:
         template_file = "TechVJ/template/dl.html"
         async with aiohttp.ClientSession() as s:
@@ -43,4 +43,5 @@ async def render_page(id, secure_hash, src=None):
         file_size=file_size,
         file_unique_id=file_data.unique_id,
     )
+
 
