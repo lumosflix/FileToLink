@@ -265,7 +265,25 @@
       catch { alert('Failed to copy link.'); }
     });
   </script>
+    <script>
+// Prevent Ctrl + Wheel zoom
+window.addEventListener('wheel', function(e) {
+  if (e.ctrlKey) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Prevent Ctrl + '+' / Ctrl + '-' / Ctrl + '0' zoom shortcuts
+window.addEventListener('keydown', function(e) {
+  const isCtrl = e.ctrlKey || e.metaKey;
+  const blockedKeys = ['+', '-', '=', '0'];
+  if (isCtrl && blockedKeys.includes(e.key)) {
+    e.preventDefault();
+  }
+});
+    </script>
 </body>
 </html>
+
 
 
